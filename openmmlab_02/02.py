@@ -11,6 +11,7 @@ class NewInterpolate(torch.autograd.Function):
     # 要决定新算子映射到 ONNX 算子的方法，映射到 ONNX 的方法由一个算子的 symbolic 方法决定
     # symbolic 方法第一个参数必须是g，之后的参数是算子的自定义输入，和 forward 函数一样
     def symbolic(g, input, scales):
+        # 直接在 symbolic 静态方法中实现，无需 register_op
         return g.op("Resize",
                     input,
                     g.op("Constant", value_t=torch.tensor([], dtype=torch.float32)),
