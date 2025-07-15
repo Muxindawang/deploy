@@ -1,6 +1,3 @@
-import onnxruntime_extensions
-import openmmlab_04.custom_add  # 注册自定义算子
-
 import torch
 import torch.nn as nn
 from torch.autograd import Function
@@ -33,7 +30,6 @@ torch.onnx.export(
     operator_export_type=torch.onnx.OperatorExportTypes.ONNX_FALLTHROUGH
 )
 
-import numpy as np
 import onnxruntime as ort
 from onnxruntime_extensions import get_library_path
 so = ort.SessionOptions()

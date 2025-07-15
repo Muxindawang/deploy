@@ -5,7 +5,7 @@ import wget
 os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 
 # 创建模型缓存目录
-cache_dir = os.path.join('.', 'cache_models')
+cache_dir = os.path.join('', 'cache_models')
 if not os.path.exists(cache_dir):
     os.mkdir(cache_dir)
 
@@ -58,7 +58,7 @@ features, dataset = squad_convert_examples_to_features(
         )
 
 # 创建ONNX模型输出目录
-output_dir = os.path.join(".", "onnx_models")
+output_dir = os.path.join("", "onnx_models")
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 export_model_path = os.path.join(output_dir, 'bert-base-cased-squad.onnx')
