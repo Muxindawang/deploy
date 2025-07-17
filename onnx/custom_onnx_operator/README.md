@@ -11,3 +11,9 @@
    - 用C++实现onnx runtime版本的算子
    - 编译为`so`
    - 加载推理
+
+
+
+## 参考
+
+https://github.com/onnx/tutorials/tree/main/PyTorchCustomOperator
