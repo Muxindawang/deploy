@@ -2,3 +2,4 @@
 *.engine
 *.tar.gz
 *build*
+*trt_cuda
