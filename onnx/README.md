@@ -1,128 +1,133 @@
+
+
+### 基本概念
+
+- 模型
+  - graph：模型的核心部分，定义了模型的计算流程。
+    - graph由nodes、tensors、initilizers、inputs、outputs组成
+  - tensors：数据的载体，可以是输入、输出或中间结果。
+    - 变量
+    - 常量
+  - nodes：表示图中的操作（如卷积、激活函数等）。
+    - Optype：操作类型，如conv、ReLU
+    - name
+    - inputs、outputs
+    - attributes：额外属性，如conv的stride
+  - initializers：模型的参数，通常是训练好的权重和偏置
+
+### onnx格式-proto
+
+https://github.com/onnx/onnx/blob/main/onnx/onnx.proto
+
+https://onnx.ai/onnx/api/classes.html#graphproto
+
+```protobuf
+message ModelProto {
+  optional int64 ir_version = 1;
+  repeated OperatorSetIdProto opset_import = 8;
+  optional string producer_name = 2;
+  optional string producer_version = 3;
+  optional string domain = 4;
+  optional int64 model_version = 5;
+  optional string doc_string = 6;
+  optional GraphProto graph = 7;    // The parameterized graph that is evaluated to execute the model.
+  repeated StringStringEntryProto metadata_props = 14;
+  repeated TrainingInfoProto training_info = 20;
+  repeated FunctionProto functions = 25;
+  repeated DeviceConfigurationProto configuration = 26;
+};
+
+message GraphProto {
+  // The nodes in the graph, sorted topologically.
+  repeated NodeProto node = 1;
+
+  // The name of the graph.
+  optional string name = 2;   // namespace Graph
+
+  // A list of named tensor values, used to specify constant inputs of the graph.
+  // Each initializer (both TensorProto as well SparseTensorProto) MUST have a name.
+  // The name MUST be unique across both initializer and sparse_initializer,
+  // but the name MAY also appear in the input list.
+  repeated TensorProto initializer = 5;
+  repeated SparseTensorProto sparse_initializer = 15;
+  optional string doc_string = 10;
+  repeated ValueInfoProto input = 11;
+  repeated ValueInfoProto output = 12;
+  repeated ValueInfoProto value_info = 13;
+  repeated TensorAnnotation quantization_annotation = 14;
+  repeated StringStringEntryProto metadata_props = 16;
+  reserved 3, 4, 6 to 9;
+  reserved "ir_version", "producer_version", "producer_tag", "domain";
+}
+
+message NodeProto {
+  repeated string input = 1;    // namespace Value
+  repeated string output = 2;   // namespace Value
+
+  // An optional identifier for this node in a graph.
+  // This field MAY be absent in this version of the IR.
+  optional string name = 3;     // namespace Node
+
+  // The symbolic identifier of the Operator to execute.
+  optional string op_type = 4;  // namespace Operator
+  // The domain of the OperatorSet that specifies the operator named by op_type.
+  optional string domain = 7;   // namespace Domain
+  // Overload identifier, used only to map this to a model-local function.
+  optional string overload = 8;
+
+  // Additional named attributes.
+  repeated AttributeProto attribute = 5;
+
+  // A human-readable documentation for this node. Markdown is allowed.
+  optional string doc_string = 6;
+
+  // Named metadata values; keys should be distinct.
+  repeated StringStringEntryProto metadata_props = 9;
+
+  // Configuration of multi-device annotations.
+  repeated NodeDeviceConfigurationProto device_configurations = 10;
+}
+```
+
+
+
+### 算子
+
+算子列表：https://onnx.ai/onnx/operators/index.html
+
+### 自定义算子
+
+https://github.com/onnx/tutorials/blob/main/PyTorchCustomOperator/README.md
+
+### 图优化
+
+https://github.com/onnx/optimizer
+
+### 量化
+
+参考：https://github.com/microsoft/onnxruntime-inference-examples/tree/main/quantization
+
+### 常用API
+
+| 功能分类         | 功能描述      | API 调用                            | 示例代码                                                     |
+| :--------------- | :------------ | :---------------------------------- | :----------------------------------------------------------- |
+| **ONNX**         | 加载模型      | `onnx.load`                         | `python model = onnx.load("model.onnx") `                    |
+|                  | 保存模型      | `onnx.save`                         | `python onnx.save(model, "model.onnx") `                     |
+|                  | 验证模型      | `onnx.checker.check_model`          | `python onnx.checker.check_model(model) `                    |
+|                  | 打印模型结构  | `onnx.helper.printable_graph`       | `python print(onnx.helper.printable_graph(model.graph)) `    |
+|                  | 形状推理      | `onnx.shape_inference.infer_shapes` | `python inferred_model = onnx.shape_inference.infer_shapes(model) ` |
+|                  | 提取子模型    | `onnx.utils.extract_model`          | `python extract_model(input_path, output_path, input_names, output_names) ` |
+|                  | Pytorch转onnx | torch.onnx.export                   | torch.onnx.export(model, dummy_input, "model.onnx", export_params=True, opset_version=11, input_names=['input'], output_names=['output'], dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}}) |
+| 图优化           |               | onnxoptimizer                       |                                                              |
+| 量化             |               | onnxruntime.quantization            |                                                              |
+| **ONNX Runtime** | 创建推理会话  | `ort.InferenceSession`              | `python session = ort.InferenceSession("model.onnx", providers=["CPUExecutionProvider"]) ` |
+|                  | 获取输入信息  | `session.get_inputs()`              | `python input_name = session.get_inputs()[0].name `          |
+|                  | 获取输出信息  | `session.get_outputs()`             | `python output_name = session.get_outputs()[0].name `        |
+|                  | 执行推理      | `session.run`                       | `python outputs = session.run([output_name], {input_name: input_data}) ` |
+
+
+
 onnx官方文档：https://onnx.ai/onnx/
 
 算子列表：https://onnx.ai/onnx/operators/index.html
 
-## Serialization
-
-### Model Serialization
-
-### Data Serialization
-
-## Initializer, default value
-
-## Attributes
-
-## Opset and metadata
-
-## Subgraph: test and loops
-
-### Scan
-
-## Functions
-
-## Parsing
-
-## Evaluation and Runtime
-
-
-
-
-
-把 ONNX 当作“**深度学习模型在不同框架之间流通的通用护照**”，要真正用好它，你需要掌握 4 个层面、12 个知识点、3 个实战套路。下面这份“ONNX 技能地图”完全面向 2025 年最新生态（opset 21、ORT 1.19、onnx-tensorrt 10.x），照着学即可落地。
-
-──────────────────
-一、为什么学 ONNX
-• 训练框架（PyTorch / TF / Paddle / MindSpore）→ 导出 ONNX → 部署框架（ONNX Runtime、TensorRT、OpenVINO、TVM、ncnn）
-• **ONNX 是“中间格式”而非“推理引擎”**，掌握它等于掌握“模型迁移 + 优化 + 部署”的通用钥匙。
-
-──────────────────
-二、必须掌握的 12 个知识块
-
-表格
-
-复制
-
-| 维度                  | 知识点                                    | 常用工具 / API                                            |
-| :-------------------- | :---------------------------------------- | :-------------------------------------------------------- |
-| 1. 格式本身           | .onnx 文件结构（Graph → Node → Tensor）   | Netron、onnx.proto                                        |
-| 2. 算子 & Opset       | Opset 版本对应表、自定义算子注册          | `onnx.defs.get_schema()`                                  |
-| 3. 导出               | torch → onnx、keras → onnx、paddle → onnx | `torch.onnx.export`、tf2onnx、paddle2onnx                 |
-| 4. 校验 & 可视化      | 检查模型有效性、查看节点属性              | `onnx.checker.check_model()`、Netron                      |
-| 5. 图优化             | 常量折叠、死代码消除、节点融合            | `onnxoptimizer`、ORT GraphOptimizationLevel               |
-| 6. 量化               | 静态 / 动态量化、QDQ 节点插入             | `onnxruntime.quantization`、Intel QOperator               |
-| 7. 形状推导           | 动态维度 → 静态维度                       | `onnx.shape_inference.infer_shapes()`                     |
-| 8. 版本转换           | 低 opset → 高 opset                       | `onnx.version_converter`                                  |
-| 9. 推理               | onnxruntime-gpu、onnxruntime-web          | `InferenceSession`, `providers=['CUDAExecutionProvider']` |
-| 10. 加速后端          | TensorRT / OpenVINO / TVM / DirectML      | `trtexec`, `onnxruntime-openvino`                         |
-| 11. 自定义算子        | 编写自定义 OP、注册 schema                | `onnx.defs` + C++/CUDA kernel                             |
-| 12. Debug & Profiling | 节点逐层比对、性能分析                    | `onnxruntime-profile`, `polygraphy surgeon`, `onnxsim`    |
-
-──────────────────
-三、3 套最小可运行实战
-
-1. PyTorch 分类模型 → ONNX → ONNX Runtime 推理
-
-   Python
-
-   复制
-
-   ```python
-   torch.onnx.export(model, dummy, "cls.onnx", opset_version=17)
-   sess = ort.InferenceSession("cls.onnx", providers=['CUDAExecutionProvider'])
-   out = sess.run(None, {sess.get_inputs()[0].name: np.zeros((1,3,224,224))})
-   ```
-
-   
-
-2. ONNX → TensorRT（INT8 量化）
-
-   bash
-
-   复制
-
-   ```bash
-   trtexec --onnx=yolov8.onnx --saveEngine=yolov8_int8.engine --int8 --calib=calib
-   ```
-
-   
-
-3. ONNX 图优化 + 自定义算子
-
-   Python
-
-   复制
-
-   ```python
-   import onnxoptimizer
-   model = onnx.load("raw.onnx")
-   passes = ["eliminate_nop_transpose", "fuse_bn_into_conv"]
-   opt = onnxoptimizer.optimize(model, passes)
-   onnx.save(opt, "opt.onnx")
-   ```
-
-   
-
-──────────────────
-四、3 条高效学习路线（按天打卡）
-
-表格
-
-复制
-
-| 阶段    | 目标           | 推荐资源                                  |
-| :------ | :------------- | :---------------------------------------- |
-| Day 1-2 | 掌握导出与验证 | PyTorch 官方 ONNX 文档 + Netron 实操      |
-| Day 3-4 | 掌握优化与量化 | ONNX Runtime Quantization Notebook        |
-| Day 5-7 | 掌握部署与调试 | TensorRT 官方 sampleONNX + 自定义 OP 示例 |
-
-──────────────────
-五、常见坑 & 速查表
-• **动态维度**：导出时 `dynamic_axes` 必须对齐推理输入。
-• **opset 不兼容**：高版本算子在低版本后端会报错，用 `onnxsim` + `opset 17` 起步。
-• **性能异常**：优先检查 provider 顺序（`CUDAExecutionProvider` > `CPUExecutionProvider`）。
-• **自定义算子**：Python 仅用于注册 schema，真正推理需 C++/CUDA kernel。
-
-──────────────────
-一句话总结
-把 ONNX 当作“**模型护照 + 优化工具箱 + 部署桥梁**”，按“导出→校验→优化→量化→推理→调试”六步闭环练习，2 周即可熟练。
-如需 Jetson 专属 ONNX 示例仓库（含 YOLOv8、RT-DETR、SAM 导出脚本），回复“仓库”我发链接。
