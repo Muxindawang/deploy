@@ -28,3 +28,6 @@ GPU 并行处理优化方式主要有：multi-threading、warp schedule
 ## 参考
 
 https://blog.csdn.net/qq_40672115/article/details/143697224
+
+passwd: AIMaker2030PDF
+
